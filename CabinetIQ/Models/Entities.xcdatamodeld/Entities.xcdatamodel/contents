@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1" lastSavedToolsVersion="1" systemVersion="1" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="Document" representedClassName="DocumentEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="amount" optional="YES" attributeType="Decimal" />
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO" />
+        <attribute name="docType" optional="YES" attributeType="String" />
+        <attribute name="domain" optional="YES" attributeType="String" />
+        <attribute name="dueDate" optional="YES" attributeType="Date" usesScalarValueType="NO" />
+        <attribute name="fileURL" optional="YES" attributeType="String" />
+        <attribute name="id" optional="NO" attributeType="UUID" />
+        <attribute name="issueDate" optional="YES" attributeType="Date" usesScalarValueType="NO" />
+        <attribute name="issuer" optional="YES" attributeType="String" />
+        <attribute name="jsonFields" optional="YES" attributeType="Binary" />
+        <attribute name="ocrText" optional="YES" attributeType="String" />
+        <attribute name="relatedEntities" optional="YES" attributeType="Binary" />
+        <attribute name="scoreCache" optional="YES" attributeType="Double" usesScalarValueType="YES" />
+        <attribute name="source" optional="YES" attributeType="String" />
+        <attribute name="tags" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromData" customClassName="NSArray" />
+    </entity>
+    <elements>
+        <element name="Document" positionX="0" positionY="0" width="128" height="120"/>
+    </elements>
+</model>

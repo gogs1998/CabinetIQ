@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>CabinetIQ</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>UILaunchStoryboardName</key>
+	<string></string>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+	<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>CabinetIQ needs the camera to scan your documents on-device.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>CabinetIQ imports photos you choose to add to your vault.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>CabinetIQ saves processed documents back to your library when you request it.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>CabinetIQ may capture audio if you record notes alongside documents.</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>CabinetIQ stores local copies of imported documents to process them on-device.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>cabinetiq</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

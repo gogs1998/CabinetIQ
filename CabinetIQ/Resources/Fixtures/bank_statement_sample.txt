@@ -1,0 +1,5 @@
+Bank Statement
+Sort Code: 12-34-56
+Account Number: 12345678
+Statement period from 01/05/2024 to 31/05/2024
+Closing balance £5,678.90

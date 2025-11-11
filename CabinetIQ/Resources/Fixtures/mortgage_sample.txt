@@ -1,0 +1,7 @@
+Mortgage Statement
+Lender: Future Bank
+Product: Fix Saver 5y
+Rate 3.45%
+Fixed rate ends 12/10/2026
+Monthly payment £1,234.56
+Outstanding balance £250,000.00

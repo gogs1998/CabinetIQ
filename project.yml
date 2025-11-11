@@ -1,0 +1,53 @@
+name: CabinetIQ
+options:
+  minimumXcodeGenVersion: 2.39.0
+configs:
+  Debug: debug
+  Release: release
+targets:
+  CabinetIQ:
+    type: application
+    platform: iOS
+    deploymentTarget: "18.0"
+    settings:
+      INFOPLIST_FILE: CabinetIQ/Info.plist
+      PRODUCT_BUNDLE_IDENTIFIER: com.example.CabinetIQ
+      CURRENT_PROJECT_VERSION: 1
+      MARKETING_VERSION: 1.0
+      ENABLE_PREVIEWS: YES
+      CODE_SIGN_ENTITLEMENTS: CabinetIQ/CabinetIQ.entitlements
+    sources:
+      - path: CabinetIQ
+        excludes:
+          - Resources
+      - path: Shared
+    resources:
+      - path: CabinetIQ/Resources/Assets.xcassets
+      - path: CabinetIQ/Resources/Fixtures
+    dependencies:
+      - target: CabinetIQShareExtension
+        embed: app-extension
+  CabinetIQTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "18.0"
+    settings:
+      INFOPLIST_FILE: CabinetIQTests/Info.plist
+      PRODUCT_BUNDLE_IDENTIFIER: com.example.CabinetIQTests
+    sources:
+      - path: CabinetIQTests
+    resources:
+      - path: CabinetIQ/Resources/Fixtures
+    dependencies:
+      - target: CabinetIQ
+  CabinetIQShareExtension:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "18.0"
+    settings:
+      INFOPLIST_FILE: CabinetIQShareExtension/Info.plist
+      PRODUCT_BUNDLE_IDENTIFIER: com.example.CabinetIQ.Share
+      CODE_SIGN_ENTITLEMENTS: CabinetIQShareExtension/CabinetIQShareExtension.entitlements
+    sources:
+      - path: CabinetIQShareExtension
+      - path: Shared

@@ -1,0 +1,6 @@
+Receipt
+Merchant: ACME Hardware
+VAT £12.34
+Total £74.56
+Payment method: Visa
+Date 04/05/2024

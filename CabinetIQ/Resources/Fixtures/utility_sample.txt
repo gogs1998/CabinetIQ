@@ -1,0 +1,7 @@
+Utility Bill
+MPAN 123 456 789 0123
+MPRN 987654321
+Unit rate 28.21p
+Standing charge 44.10p
+Payment due date 05/06/2024
+Amount due £89.21
