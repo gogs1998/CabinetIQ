@@ -53,11 +53,11 @@ final class ShareViewController: UIViewController {
     }
 
     private func save(provider: NSItemProvider, to folder: URL) async -> String? {
-        if provider.hasItemConforming(to: .image) {
+        if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
             return await copy(provider: provider, typeIdentifier: UTType.image.identifier, to: folder)
-        } else if provider.hasItemConforming(to: .pdf) {
+        } else if provider.hasItemConformingToTypeIdentifier(UTType.pdf.identifier) {
             return await copy(provider: provider, typeIdentifier: UTType.pdf.identifier, to: folder)
-        } else if provider.hasItemConforming(to: .data) {
+        } else if provider.hasItemConformingToTypeIdentifier(UTType.data.identifier) {
             return await copy(provider: provider, typeIdentifier: UTType.data.identifier, to: folder)
         }
         return nil
@@ -71,7 +71,7 @@ final class ShareViewController: UIViewController {
                     return
                 }
                 let filename = provider.suggestedName ?? sourceURL.lastPathComponent
-                let destination = uniqueURL(for: filename, in: folder)
+                let destination = self.uniqueURL(for: filename, in: folder)
                 do {
                     if FileManager.default.fileExists(atPath: destination.path) {
                         try FileManager.default.removeItem(at: destination)
