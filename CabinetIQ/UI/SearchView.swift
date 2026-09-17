@@ -12,19 +12,24 @@ struct SearchView: View {
                 ForEach(results, id: \.0) { result in
                     if let document = fetchDocument(id: result.0) {
                         NavigationLink(destination: DocumentDetailView(document: document)) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(document.issuer ?? "Untitled")
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(document.displayTitle)
                                     .font(.headline)
+                                Text(document.docTypeValue.displayName)
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(Theme.accent)
                                 Text(result.2)
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(Theme.secondaryInk)
                             }
                         }
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .cabinetScreen()
             .navigationTitle("Search")
-            .searchable(text: $query)
+            .searchable(text: $query, prompt: "Issuers, plates, amounts")
             .onChange(of: query) { _, newValue in
                 runSearch(text: newValue)
             }

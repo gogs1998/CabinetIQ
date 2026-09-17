@@ -1,188 +1,244 @@
-import PhotosUI
 import SwiftUI
-import UniformTypeIdentifiers
 
-struct InboxView: View {
+struct HomeView: View {
     @Environment(\.managedObjectContext) private var context
+    @EnvironmentObject private var capture: CaptureCoordinator
+    @EnvironmentObject private var navigation: AppNavigation
     @FetchRequest(sortDescriptors: [NSSortDescriptor(keyPath: \DocumentEntity.createdAt, ascending: false)])
     private var documents: FetchedResults<DocumentEntity>
-
-    @State private var showScanner = false
-    @State private var showPhotoPicker = false
-    @State private var showFileImporter = false
     @State private var showSettings = false
-    @State private var selection: [PhotosPickerItem] = []
-    @State private var isProcessing = false
-    @State private var successMessage: String?
-    @State private var errorMessage: String?
 
     var body: some View {
         NavigationStack {
-            List {
-                if documents.isEmpty {
-                    ContentUnavailableView("No documents", systemImage: "tray", description: Text("Scan or import to get started."))
-                }
-                if !upcomingDocuments.isEmpty {
-                    Section("Upcoming renewals") {
-                        ForEach(upcomingDocuments) { document in
-                            HStack {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(document.issuer ?? document.docType ?? "Document")
-                                        .font(.subheadline.weight(.medium))
-                                    if let due = document.dueDate {
-                                        Text(due, style: .date)
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                }
-                                Spacer()
-                                Image(systemName: "bell.badge")
-                                    .foregroundStyle(.orange)
-                            }
-                        }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 28) {
+                    header
+                    if documents.isEmpty {
+                        emptyState
+                    } else {
+                        captureStrip
+                        attentionSection
+                        coverageSection
+                        recentSection
                     }
                 }
-                ForEach(documents) { document in
-                    NavigationLink(destination: DocumentDetailView(document: document)) {
-                        DocumentRow(document: document)
-                    }
-                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 48)
             }
-            .navigationTitle("Inbox")
+            .cabinetScreen()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button { showSettings = true } label: { Image(systemName: "gearshape") }
+                    Button { showSettings = true } label: {
+                        Image(systemName: "gearshape")
+                    }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Button("Scan", systemImage: "camera.viewfinder") { showScanner = true }
-                        Button("Photos", systemImage: "photo") { showPhotoPicker = true }
-                        Button("Files", systemImage: "folder") { showFileImporter = true }
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                    }
-                }
-            }
-            .overlay(alignment: .bottom) {
-                VStack(spacing: 8) {
-                    if let message = successMessage {
-                        Label(message, systemImage: "checkmark.circle.fill")
-                            .padding(12)
-                            .background(.ultraThinMaterial, in: Capsule())
-                    }
-                    if isProcessing {
-                        ProgressView("Processing…")
-                            .padding(12)
-                            .background(.thinMaterial, in: Capsule())
-                    }
-                }
-                .padding()
-            }
-            .alert("Import failed", isPresented: Binding(get: { errorMessage != nil }, set: { _ in errorMessage = nil })) {
-                Button("Dismiss", role: .cancel) {}
-            } message: {
-                Text(errorMessage ?? "")
-            }
-            .sheet(isPresented: $showScanner) {
-                DocumentScannerView { images in
-                    Task { await handleScannedImages(images) }
-                    showScanner = false
-                } onCancel: {
-                    showScanner = false
+                    CaptureMenu(capture: capture, includeSample: documents.isEmpty)
                 }
             }
             .sheet(isPresented: $showSettings) {
                 SettingsView()
             }
-            .photosPicker(isPresented: $showPhotoPicker, selection: $selection, maxSelectionCount: 10, matching: .images)
-            .fileImporter(isPresented: $showFileImporter, allowedContentTypes: [.pdf, .image], allowsMultipleSelection: true) { result in
-                switch result {
-                case .success(let urls):
-                    Task { await handleFileURLs(urls) }
-                case .failure(let error):
-                    errorMessage = error.localizedDescription
+            .onReceive(NotificationCenter.default.publisher(for: .shareImportCompleted)) { _ in
+                capture.notifySuccess("Imported from Share Sheet")
+            }
+        }
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(VaultInsights.greeting())
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(Theme.secondaryInk)
+            Text("Cabinet")
+                .font(.system(size: 36, weight: .semibold, design: .serif))
+            Text(documents.isEmpty
+                 ? "Your life admin, filed and remembered."
+                 : attentionLine)
+                .font(.body)
+                .foregroundStyle(Theme.secondaryInk)
+        }
+        .padding(.top, 8)
+    }
+
+    private var attentionLine: String {
+        let items = VaultInsights.attentionItems(in: Array(documents), limit: 1)
+        if let first = items.first {
+            return "\(first.displayTitle) · \(first.dueStatus.label.lowercased())."
+        }
+        return "Everything in date. File the next thing when it arrives."
+    }
+
+    private var emptyState: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 10) {
+                Image(systemName: "cabinet.fill")
+                    .font(.system(size: 36))
+                    .foregroundStyle(Theme.accent)
+                Text("Scan an MOT, policy, or bill.")
+                    .font(.title3.weight(.semibold))
+                Text("CabinetIQ reads it on this iPhone, pulls out the dates, and reminds you before they lapse. Nothing leaves the device.")
+                    .foregroundStyle(Theme.secondaryInk)
+            }
+            .cabinetCard()
+
+            Button {
+                capture.showScanner = true
+            } label: {
+                Label("Scan a document", systemImage: "camera.viewfinder")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(Theme.accent)
+            .foregroundStyle(Color.black)
+
+            Button {
+                Task { await capture.ingestSample(named: "mot_sample", context: context) }
+            } label: {
+                Label("See it with a sample MOT", systemImage: "sparkles")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+            }
+            .buttonStyle(.bordered)
+            .tint(Theme.ink)
+        }
+    }
+
+    private var captureStrip: some View {
+        HStack(spacing: 10) {
+            captureButton("Scan", "camera.viewfinder") { capture.showScanner = true }
+            captureButton("Photos", "photo") { capture.showPhotoPicker = true }
+            captureButton("Files", "folder") { capture.showFileImporter = true }
+        }
+    }
+
+    private func captureButton(_ title: String, _ icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.title3)
+                Text(title)
+                    .font(.caption.weight(.semibold))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(Theme.panel, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var attentionSection: some View {
+        let items = VaultInsights.attentionItems(in: Array(documents))
+        return VStack(alignment: .leading, spacing: 12) {
+            sectionTitle(items.isEmpty ? "All clear" : "Needs you", accessory: items.isEmpty ? "Nothing due in 90 days" : "\(items.count)")
+            if items.isEmpty {
+                Text("No MOT, insurance, or bill is coming due. We’ll surface the next one here.")
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.secondaryInk)
+                    .cabinetCard()
+            } else {
+                ForEach(items) { document in
+                    NavigationLink(destination: DocumentDetailView(document: document)) {
+                        AttentionCard(document: document)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
-            .task(id: selection) {
-                guard !selection.isEmpty else { return }
-                await handlePhotoItems()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: .shareImportCompleted)) { _ in
-                notifySuccess("Imported from Share Sheet")
-            }
         }
     }
 
-    private func handleScannedImages(_ images: [UIImage]) async {
-        let cgImages = images.compactMap { $0.cgImage }
-        await ingest(images: cgImages, source: .scan)
-    }
-
-    private func handlePhotoItems() async {
-        let cgImages: [CGImage] = await selection.asyncCompactMap { item in
-            guard let data = try? await item.loadTransferable(type: Data.self), let image = UIImage(data: data)?.cgImage else { return nil }
-            return image
-        }
-        selection.removeAll()
-        await ingest(images: cgImages, source: .photos)
-    }
-
-    private func handleFileURLs(_ urls: [URL]) async {
-        isProcessing = true
-        defer { isProcessing = false }
-        for url in urls {
-            do {
-                try await IngestPipeline.shared.ingest(fileURL: url, source: .files, context: context)
-                notifySuccess("Imported \(url.lastPathComponent)")
-            } catch {
-                errorMessage = error.localizedDescription
+    private var coverageSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionTitle("Coverage", accessory: "\(documents.count)")
+            HStack(spacing: 10) {
+                ForEach(Domain.allCases) { domain in
+                    let snapshot = VaultInsights.coverage(for: domain, in: Array(documents))
+                    Button {
+                        navigation.openVault(domain: domain)
+                    } label: {
+                        CoverageCard(snapshot: snapshot)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
         }
     }
 
-    private func ingest(images: [CGImage], source: DocumentSource) async {
-        guard !images.isEmpty else { return }
-        isProcessing = true
-        defer { isProcessing = false }
-        do {
-            try await IngestPipeline.shared.ingest(images: images, source: source, context: context)
-            notifySuccess("Document added")
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    private func notifySuccess(_ message: String) {
-        successMessage = message
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-            if successMessage == message {
-                successMessage = nil
+    private var recentSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                sectionTitle("Recent", accessory: nil)
+                Spacer()
+                Button("Vault") { navigation.openVault(domain: nil) }
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.accent)
+            }
+            ForEach(Array(documents.prefix(5))) { document in
+                NavigationLink(destination: DocumentDetailView(document: document)) {
+                    DocumentRow(document: document)
+                }
+                .buttonStyle(.plain)
             }
         }
     }
 
-    private var upcomingDocuments: [DocumentEntity] {
-        let now = Date()
-        let future = Calendar.current.date(byAdding: .day, value: 60, to: now) ?? now
-        return documents
-            .filter { document in
-                guard let due = document.dueDate else { return false }
-                return due >= now && due <= future
+    private func sectionTitle(_ title: String, accessory: String?) -> some View {
+        HStack {
+            Text(title)
+                .font(.title3.weight(.semibold))
+            if let accessory {
+                Text(accessory)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Theme.secondaryInk)
             }
-            .sorted { ($0.dueDate ?? .distantFuture) < ($1.dueDate ?? .distantFuture) }
-            .prefix(3)
-            .map { $0 }
+        }
     }
 }
 
-private extension Array where Element == PhotosPickerItem {
-    func asyncCompactMap<T>(_ transform: @escaping (Element) async -> T?) async -> [T] {
-        var values: [T] = []
-        for element in self {
-            if let value = await transform(element) {
-                values.append(value)
+private struct AttentionCard: View {
+    let document: DocumentEntity
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: document.docTypeValue.icon)
+                .font(.title3)
+                .foregroundStyle(Theme.color(for: document.dueStatus))
+                .frame(width: 36, height: 36)
+                .background(Theme.color(for: document.dueStatus).opacity(0.16), in: Circle())
+            VStack(alignment: .leading, spacing: 4) {
+                Text(document.displayTitle)
+                    .font(.headline)
+                Text(document.docTypeValue.displayName)
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.secondaryInk)
             }
+            Spacer()
+            StatusChip(text: document.dueStatus.shortLabel, color: Theme.color(for: document.dueStatus))
         }
-        return values
+        .cabinetCard()
     }
 }
+
+private struct CoverageCard: View {
+    let snapshot: CoverageSnapshot
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Image(systemName: snapshot.domain.icon)
+                .foregroundStyle(Theme.color(for: snapshot.domain))
+            Text(snapshot.domain.displayName)
+                .font(.headline)
+            Text(snapshot.headline)
+                .font(.caption)
+                .foregroundStyle(Theme.secondaryInk)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .cabinetCard()
+    }
+}
+
+typealias InboxView = HomeView

@@ -41,6 +41,14 @@
 		F67DF877DBC69C513C6D8B46 /* CabinetIQApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1045BB8F83C82FC7C6582D30 /* CabinetIQApp.swift */; };
 		F773465B6BA1F868FC18A8C6 /* DocumentClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFDF3F6F9B4D38E67CEC7713 /* DocumentClassifier.swift */; };
 		F8A54D689D1C74E71C68ADC0 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F82DE7E30BE388FE3163368B /* Theme.swift */; };
+		1A2B3C4D5E6F708192A0B1C2 /* Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708192A0B1C1 /* Presentation.swift */; };
+		1A2B3C4D5E6F708192A0B1C4 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708192A0B1C3 /* OnboardingView.swift */; };
+		1A2B3C4D5E6F708192A0B1C6 /* PresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708192A0B1C5 /* PresentationTests.swift */; };
+		1A2B3C4D5E6F708192A0B1C8 /* ShareImportHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708192A0B1C7 /* ShareImportHandler.swift */; };
+		1A2B3C4D5E6F708192A0B1CA /* AppShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708192A0B1C9 /* AppShortcuts.swift */; };
+		1A2B3C4D5E6F708192A0B1CB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708192A0B1CC /* Assets.xcassets */; };
+		1A2B3C4D5E6F708192A0B1CD /* Fixtures in Resources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708192A0B1CE /* Fixtures */; };
+		1A2B3C4D5E6F708192A0B1CF /* Fixtures in Resources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F708192A0B1CE /* Fixtures */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -75,6 +83,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1A2B3C4D5E6F708192A0B1C1 /* Presentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Presentation.swift; sourceTree = "<group>"; };
+		1A2B3C4D5E6F708192A0B1C3 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		1A2B3C4D5E6F708192A0B1C5 /* PresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresentationTests.swift; sourceTree = "<group>"; };
+		1A2B3C4D5E6F708192A0B1C7 /* ShareImportHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareImportHandler.swift; sourceTree = "<group>"; };
+		1A2B3C4D5E6F708192A0B1C9 /* AppShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShortcuts.swift; sourceTree = "<group>"; };
+		1A2B3C4D5E6F708192A0B1CC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		1A2B3C4D5E6F708192A0B1CE /* Fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fixtures; sourceTree = "<group>"; };
 		093AD407FD92622A6BB89BBE /* OnDeviceFM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnDeviceFM.swift; sourceTree = "<group>"; };
 		0A1C233F94447C860C1B90EA /* RegexExtractors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegexExtractors.swift; sourceTree = "<group>"; };
 		1045BB8F83C82FC7C6582D30 /* CabinetIQApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CabinetIQApp.swift; sourceTree = "<group>"; };
@@ -128,6 +143,7 @@
 				FF29E762A6D6DCE6C512A638 /* IntentShortcuts.swift */,
 				093AD407FD92622A6BB89BBE /* OnDeviceFM.swift */,
 				79E0676F54E58214C80A287F /* RAGEngine.swift */,
+				1A2B3C4D5E6F708192A0B1C7 /* ShareImportHandler.swift */,
 				0A1C233F94447C860C1B90EA /* RegexExtractors.swift */,
 				D264B7687A6B1048E55B8E42 /* ReminderService.swift */,
 				299158C7CC3ACF7D166D5A63 /* SearchIndex.swift */,
@@ -157,6 +173,7 @@
 			isa = PBXGroup;
 			children = (
 				A0F2BC5016350E143C59F38D /* AskCabinetIQIntent.swift */,
+				1A2B3C4D5E6F708192A0B1C9 /* AppShortcuts.swift */,
 			);
 			path = Intents;
 			sourceTree = "<group>";
@@ -168,6 +185,7 @@
 				AF13E6EDAAE374AA6AF8914E /* Domain.swift */,
 				5881C892AA8C9F7AF507DB2A /* Entities.xcdatamodeld */,
 				4257CCBB20E2CFB9E430EDAA /* ExtractionModels.swift */,
+				1A2B3C4D5E6F708192A0B1C1 /* Presentation.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -180,6 +198,7 @@
 				DC9AEDBFD2CB41D2D30301A4 /* DocumentRow.swift */,
 				96EDF6E1D24278D19C9D5CA1 /* DomainViews.swift */,
 				A1E3427F307AE82FD4040775 /* InboxView.swift */,
+				1A2B3C4D5E6F708192A0B1C3 /* OnboardingView.swift */,
 				57BFC3E8F7B9B3703D185E26 /* RootTabView.swift */,
 				F4097797DBBC7D2CFC2122CB /* ScannerSheets.swift */,
 				6A74CAC3A838706A4DF68D02 /* SearchView.swift */,
@@ -194,6 +213,7 @@
 				5D23E331392F96B837A0DCC2 /* ExtractionTests.swift */,
 				AC942C2BA252E2256C23C828 /* Info.plist */,
 				4F5FE8F90EE9D57DD10E91D4 /* IntentTests.swift */,
+				1A2B3C4D5E6F708192A0B1C5 /* PresentationTests.swift */,
 				EEE421744FD378E99DBE38AD /* RAGTests.swift */,
 			);
 			path = CabinetIQTests;
@@ -219,6 +239,7 @@
 				728A2C066A8DCD99CBE7653E /* Models */,
 				178C6921B09529BBA655B8F7 /* Services */,
 				945EEEC0AAA8A836D8EDB94D /* UI */,
+				1A2B3C4D5E6F708192A0B1D0 /* Resources */,
 			);
 			path = CabinetIQ;
 			sourceTree = "<group>";
@@ -244,6 +265,15 @@
 			);
 			sourceTree = "<group>";
 		};
+		1A2B3C4D5E6F708192A0B1D0 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				1A2B3C4D5E6F708192A0B1CC /* Assets.xcassets */,
+				1A2B3C4D5E6F708192A0B1CE /* Fixtures */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -252,6 +282,7 @@
 			buildConfigurationList = 2CA304B2D0C3DCBCA7636D17 /* Build configuration list for PBXNativeTarget "CabinetIQTests" */;
 			buildPhases = (
 				1A9A87A06D35EDA6F5FECB63 /* Sources */,
+				1A2B3C4D5E6F708192A0B1D2 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -287,6 +318,7 @@
 			buildConfigurationList = F5B89AD1829C83C1EEE2D1F2 /* Build configuration list for PBXNativeTarget "CabinetIQ" */;
 			buildPhases = (
 				7967BC30EC0495F78931A5DA /* Sources */,
+				1A2B3C4D5E6F708192A0B1D1 /* Resources */,
 				E6C086723D478E0A621DDF31 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
@@ -330,6 +362,26 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		1A2B3C4D5E6F708192A0B1D1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A2B3C4D5E6F708192A0B1CB /* Assets.xcassets in Resources */,
+				1A2B3C4D5E6F708192A0B1CD /* Fixtures in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A2B3C4D5E6F708192A0B1D2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A2B3C4D5E6F708192A0B1CF /* Fixtures in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		1A9A87A06D35EDA6F5FECB63 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -337,6 +389,7 @@
 			files = (
 				23DC821267B43C379BC5E554 /* ExtractionTests.swift in Sources */,
 				EDE867433A46BAFDAC720A07 /* IntentTests.swift in Sources */,
+				1A2B3C4D5E6F708192A0B1C6 /* PresentationTests.swift in Sources */,
 				7A4E3441B50B91B85D0C873C /* RAGTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -355,6 +408,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8A3D39D8FDFAA6AB05FD9CB3 /* AskCabinetIQIntent.swift in Sources */,
+				1A2B3C4D5E6F708192A0B1CA /* AppShortcuts.swift in Sources */,
 				120A3C2CCFADB54EDD336370 /* AskView.swift in Sources */,
 				F67DF877DBC69C513C6D8B46 /* CabinetIQApp.swift in Sources */,
 				F773465B6BA1F868FC18A8C6 /* DocumentClassifier.swift in Sources */,
@@ -368,6 +422,9 @@
 				13FF57EAC37B9342375E2133 /* ExtractionModels.swift in Sources */,
 				EE3566C75F189242528E48DA /* FieldExtractor.swift in Sources */,
 				039F6E59EF540A26DC303111 /* InboxView.swift in Sources */,
+				1A2B3C4D5E6F708192A0B1C4 /* OnboardingView.swift in Sources */,
+				1A2B3C4D5E6F708192A0B1C2 /* Presentation.swift in Sources */,
+				1A2B3C4D5E6F708192A0B1C8 /* ShareImportHandler.swift in Sources */,
 				D2AAD5228DA1F44FADFA452F /* IngestPipeline.swift in Sources */,
 				03EB4F38ACABF8A4F98838FD /* IntentShortcuts.swift in Sources */,
 				278E8F00A968D4DB8F090D97 /* OnDeviceFM.swift in Sources */,

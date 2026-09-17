@@ -31,8 +31,8 @@ final class RAGEngine: ObservableObject {
             return AskAnswer(question: question, text: fmResponse, citations: citations, source: .rag)
         }
 
-        let deterministic = buildDeterministicAnswer(question: question, matches: matches)
-        return AskAnswer(question: question, text: deterministic, citations: citations, source: .deterministic)
+        let retrieved = buildDeterministicAnswer(question: question, matches: matches)
+        return AskAnswer(question: question, text: retrieved, citations: citations, source: .rag)
     }
 
     private func buildDeterministicAnswer(question: String, matches: [(UUID, Double, String)]) -> String {
