@@ -4,7 +4,11 @@ import CoreData
 struct AskView: View {
     @Environment(\.managedObjectContext) private var context
     @EnvironmentObject private var rag: RAGEngine
-    @State private var messages: [AskAnswer] = []
+    @EnvironmentObject private var navigation: AppNavigation
+    @FetchRequest(sortDescriptors: [NSSortDescriptor(keyPath: \DocumentEntity.createdAt, ascending: false)])
+    private var documents: FetchedResults<DocumentEntity>
+
+    @State private var turns: [AskTurn] = []
     @State private var input = ""
     @State private var scope: AskScope = .all
     @State private var isThinking = false
@@ -12,31 +16,46 @@ struct AskView: View {
 
     var body: some View {
         NavigationStack {
-            VStack {
+            VStack(spacing: 0) {
                 scopePicker
                 ScrollViewReader { proxy in
                     ScrollView {
-                        VStack(alignment: .leading, spacing: 12) {
-                            ForEach(messages) { message in
-                                messageBubble(for: message)
+                        VStack(alignment: .leading, spacing: 16) {
+                            if turns.isEmpty {
+                                emptyState
+                            }
+                            ForEach(turns) { turn in
+                                turnView(turn)
+                                    .id(turn.id)
                             }
                             if isThinking {
-                                ProgressView("Thinking…")
+                                ProgressView("Looking through your cabinet…")
+                                    .tint(Theme.accent)
                             }
                         }
-                        .padding()
+                        .padding(20)
+                    }
+                    .onChange(of: turns.count) { _, _ in
+                        if let last = turns.last {
+                            withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
+                        }
                     }
                 }
                 askBar
             }
-            .navigationTitle("Ask CabinetIQ")
+            .cabinetScreen()
+            .navigationTitle("Ask")
+            .onAppear(perform: consumePendingQuestion)
+            .onChange(of: navigation.pendingQuestion) { _, _ in
+                consumePendingQuestion()
+            }
             .sheet(item: $selectedDocumentID) { id in
                 if let document = fetchDocument(id: id) {
                     NavigationStack {
                         DocumentDetailView(document: document)
                     }
                 } else {
-                    Text("Document no longer exists.")
+                    Text("That document is no longer in the cabinet.")
                         .padding()
                 }
             }
@@ -45,65 +64,119 @@ struct AskView: View {
 
     private var scopePicker: some View {
         Menu {
-            Button("All Documents") { scope = .all }
-            Section("Domains") {
+            Button("All documents") { scope = .all }
+            Section("Cabinets") {
                 ForEach(Domain.allCases) { domain in
-                    Button(domain.rawValue) { scope = .domain(domain) }
+                    Button(domain.displayName) { scope = .domain(domain) }
                 }
             }
-            Section("Doc Types") {
+            Section("Types") {
                 ForEach(DocType.allCases) { type in
-                    Button(type.rawValue) { scope = .docType(type) }
+                    Button(type.displayName) { scope = .docType(type) }
                 }
             }
         } label: {
-            Label("Scope", systemImage: "line.3.horizontal.decrease.circle")
+            Label(scope.label, systemImage: "line.3.horizontal.decrease.circle")
+                .font(.subheadline.weight(.semibold))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Theme.panel, in: Capsule())
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var emptyState: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Ask the text we read")
+                .font(.system(size: 28, weight: .semibold, design: .serif))
+            Text("Every scan is OCR’d on this iPhone. Ask for a plate, policy number, amount, or date — answers cite the original document.")
+                .foregroundStyle(Theme.secondaryInk)
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(VaultInsights.suggestedQuestions(for: Array(documents)), id: \.self) { question in
+                    Button {
+                        input = question
+                        send()
+                    } label: {
+                        Text(question)
+                            .font(.subheadline.weight(.medium))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Theme.panel, in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
     }
 
     private var askBar: some View {
-        HStack {
-            TextField("Ask about your docs", text: $input)
-                .textFieldStyle(.roundedBorder)
+        HStack(spacing: 10) {
+            TextField("What’s my registration, policy, rate…", text: $input, axis: .vertical)
+                .textFieldStyle(.plain)
+                .padding(12)
+                .background(Theme.panel, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             Button(action: send) {
-                Image(systemName: "paperplane.fill")
+                Image(systemName: "arrow.up.circle.fill")
+                    .font(.system(size: 32))
+                    .foregroundStyle(canSend ? Theme.accent : Theme.secondaryInk)
             }
-            .disabled(input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isThinking)
+            .disabled(!canSend)
         }
-        .padding()
+        .padding(16)
+        .background(Theme.background)
     }
 
-    private func messageBubble(for message: AskAnswer) -> some View {
-        let questionTokens = tokens(from: message.question)
-        VStack(alignment: .leading, spacing: 6) {
-            Text(message.source == .rag ? "RAG" : "Intent")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Text(message.text)
-                .padding()
-                .background(message.source == .rag ? Color.cyan.opacity(0.2) : Color.gray.opacity(0.2), in: RoundedRectangle(cornerRadius: 12))
-            if !message.citations.isEmpty {
-                VStack(alignment: .leading, spacing: 6) {
-                    ForEach(message.citations) { citation in
+    private var canSend: Bool {
+        !input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isThinking
+    }
+
+    private func turnView(_ turn: AskTurn) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(turn.question)
+                .padding(12)
+                .background(Theme.panelElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .frame(maxWidth: .infinity, alignment: .trailing)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(turn.answer.source == .rag ? "From the text we read" : "From extracted facts")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Theme.secondaryInk)
+                Text(turn.answer.text)
+                if !turn.answer.citations.isEmpty {
+                    ForEach(turn.answer.citations) { citation in
                         Button {
                             selectedDocumentID = citation.documentID
                         } label: {
                             VStack(alignment: .leading, spacing: 4) {
-                                highlightedText(for: citation.snippet, tokens: questionTokens)
+                                highlightedText(for: citation.snippet, tokens: tokens(from: turn.question))
                                     .font(.caption)
                                     .multilineTextAlignment(.leading)
                                 Text("Open document")
-                                    .font(.caption2)
-                                    .foregroundStyle(.cyan)
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundStyle(Theme.accent)
                             }
                             .padding(10)
-                            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Theme.background.opacity(0.5), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                         }
                         .buttonStyle(.plain)
                     }
                 }
             }
+            .padding(14)
+            .background(Theme.accent.opacity(0.14), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
+    }
+
+    private func consumePendingQuestion() {
+        scope = navigation.pendingScope
+        guard let pending = navigation.pendingQuestion, !pending.isEmpty else { return }
+        selectedDocumentID = nil
+        navigation.pendingQuestion = nil
+        input = pending
+        send()
     }
 
     private func send() {
@@ -112,12 +185,13 @@ struct AskView: View {
         input = ""
         isThinking = true
         Task {
+            let answer: AskAnswer
             if let intent = IntentShortcuts.answer(query: trimmed, context: context) {
-                messages.append(intent)
+                answer = intent
             } else {
-                let answer = await rag.answer(question: trimmed, scope: scope, context: context)
-                messages.append(answer)
+                answer = await rag.answer(question: trimmed, scope: scope, context: context)
             }
+            turns.append(AskTurn(question: trimmed, answer: answer))
             isThinking = false
         }
     }
@@ -139,7 +213,7 @@ struct AskView: View {
             if let swiftRange = Range(range, in: snippet),
                let attrStart = AttributedString.Index(swiftRange.lowerBound, within: attributed),
                let attrEnd = AttributedString.Index(swiftRange.upperBound, within: attributed) {
-                attributed[attrStart..<attrEnd].foregroundColor = .cyan
+                attributed[attrStart..<attrEnd].foregroundColor = Theme.accent
                 attributed[attrStart..<attrEnd].font = .caption.bold()
             }
             let nextLocation = range.location + range.length
@@ -163,6 +237,12 @@ struct AskView: View {
         request.fetchLimit = 1
         return try? context.fetch(request).first
     }
+}
+
+private struct AskTurn: Identifiable {
+    let id = UUID()
+    let question: String
+    let answer: AskAnswer
 }
 
 private extension Array where Element: Hashable {

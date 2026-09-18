@@ -22,5 +22,6 @@ final class RAGTests: XCTestCase {
         let answer = await RAGEngine.shared.answer(question: "When is my HMRC payment due?", scope: .all, context: context)
         XCTAssertFalse(answer.citations.isEmpty)
         XCTAssertEqual(answer.citations.first?.documentID, doc.id)
+        XCTAssertTrue(answer.text.contains("HM Revenue") || answer.text.contains("text we read"))
     }
 }

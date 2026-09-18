@@ -6,12 +6,27 @@ final class ReminderService: NSObject, ObservableObject {
     static let shared = ReminderService()
 
     @Published private(set) var isAuthorized = false
+    @Published private(set) var authorizationStatus: UNAuthorizationStatus = .notDetermined
     private let center = UNUserNotificationCenter.current()
 
     func prepareAuthorization() {
+        refreshStatus()
+    }
+
+    func refreshStatus() {
+        center.getNotificationSettings { settings in
+            DispatchQueue.main.async {
+                self.authorizationStatus = settings.authorizationStatus
+                self.isAuthorized = [.authorized, .provisional, .ephemeral].contains(settings.authorizationStatus)
+            }
+        }
+    }
+
+    func requestAuthorization() {
         center.requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
             DispatchQueue.main.async {
                 self.isAuthorized = granted
+                self.authorizationStatus = granted ? .authorized : .denied
             }
         }
     }
@@ -21,16 +36,19 @@ final class ReminderService: NSObject, ObservableObject {
         guard let identifier = document.id else { return }
         let identifiers = reminderOffsets.map { id(for: identifier, offset: $0) }
         center.removePendingNotificationRequests(withIdentifiers: identifiers)
-        guard isAuthorized else { return }
+        if authorizationStatus == .notDetermined {
+            requestAuthorization()
+        }
+        guard isAuthorized || authorizationStatus == .notDetermined else { return }
         for offset in reminderOffsets {
             guard let triggerDate = Calendar.current.date(byAdding: .day, value: offset, to: dueDate) else { continue }
-            let components = Calendar.current.dateComponents([.year, .month, .day], from: triggerDate)
-            var comps = components
+            var comps = Calendar.current.dateComponents([.year, .month, .day], from: triggerDate)
             comps.hour = 9
             let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: false)
             let content = UNMutableNotificationContent()
-            content.title = "\(document.docType ?? "Document") due soon"
-            content.body = document.issuer ?? "CabinetIQ reminder"
+            let days = abs(offset)
+            content.title = "\(document.docTypeValue.displayName) in \(days) days"
+            content.body = "\(document.displayTitle) is due \(FieldCatalog.date(dueDate) ?? "soon")."
             content.userInfo = ["documentID": identifier.uuidString]
             let request = UNNotificationRequest(identifier: id(for: identifier, offset: offset), content: content, trigger: trigger)
             center.add(request)

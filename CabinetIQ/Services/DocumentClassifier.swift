@@ -8,7 +8,8 @@ struct DocumentClassifier {
         if contains(["mot test certificate", "vt20", "dvsa"]) {
             return (.car, .mot, "DVSA")
         } else if contains(["policy number", "premium", "certificate of insurance"]) {
-            return (.life, .insurance, "Insurance Provider")
+            let vehicle = contains(["vehicle", "motor", "car insurance", "vrm"]) || RegexExtractors.extractVRM(in: text) != nil
+            return (vehicle ? .car : .life, .insurance, "Insurance Provider")
         } else if contains(["mortgage", "fixed rate", "lender"]) {
             return (.home, .mortgage, "Mortgage Lender")
         } else if contains(["mpan", "mprn", "standing charge", "unit rate"]) {

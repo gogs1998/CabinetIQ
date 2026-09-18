@@ -1,6 +1,8 @@
 import CoreData
+import PDFKit
+import UIKit
 
-extension DocumentEntity {
+extension DocumentEntity: Identifiable {
     @nonobjc class func fetchRequestAll() -> NSFetchRequest<DocumentEntity> {
         DocumentEntity.fetchRequest()
     }
@@ -23,6 +25,58 @@ extension DocumentEntity {
         return (try? JSONDecoder().decode([LineGeometry].self, from: relatedEntities)) ?? []
     }
 
+    var displayTitle: String {
+        if let issuer, !issuer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return issuer
+        }
+        return docTypeValue.displayName
+    }
+
+    var displaySubtitle: String {
+        var parts = [docTypeValue.displayName]
+        if let due = FieldCatalog.date(dueDate) {
+            parts.append("Due \(due)")
+        } else if let amount = FieldCatalog.money(amount?.decimalValue) {
+            parts.append(amount)
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    var dueStatus: DueStatus {
+        DueStatus.from(dueDate: dueDate)
+    }
+
+    var fieldRows: [FieldRow] {
+        guard let extractedFields else { return [] }
+        return FieldCatalog.rows(from: extractedFields)
+    }
+
+    var ocrLineCount: Int {
+        (ocrText ?? "")
+            .split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+            .count
+    }
+
+    var ocrPreview: String {
+        let lines = (ocrText ?? "")
+            .split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+        return lines.prefix(3).joined(separator: "\n")
+    }
+
+    var thumbnailImage: UIImage? {
+        guard let path = fileURL, FileManager.default.fileExists(atPath: path) else { return nil }
+        if path.lowercased().hasSuffix("pdf"),
+           let pdf = PDFDocument(url: URL(fileURLWithPath: path)),
+           let page = pdf.page(at: 0) {
+            return page.thumbnail(of: CGSize(width: 240, height: 320), for: .mediaBox)
+        }
+        return UIImage(contentsOfFile: path)
+    }
+
     func apply(fields: ExtractedFields, lines: [LineGeometry] = []) {
         jsonFields = try? JSONEncoder().encode(fields)
         relatedEntities = try? JSONEncoder().encode(lines)
@@ -37,6 +91,17 @@ extension DocumentEntity {
         if let address = fields.address, !address.isEmpty {
             addTag(address)
         }
+    }
+
+    @MainActor
+    func purge(in context: NSManagedObjectContext) {
+        ReminderService.shared.cancelReminders(for: self)
+        SearchIndex.shared.remove(document: self)
+        if let path = fileURL, FileManager.default.fileExists(atPath: path) {
+            try? FileManager.default.removeItem(atPath: path)
+        }
+        context.delete(self)
+        try? context.save()
     }
 
     private func addTag(_ value: String) {

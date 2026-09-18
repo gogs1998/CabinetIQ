@@ -6,12 +6,27 @@ import UserNotifications
 
 struct SettingsView: View {
     @Environment(\.openURL) private var openURL
+    @EnvironmentObject private var reminderService: ReminderService
+    @FetchRequest(sortDescriptors: [NSSortDescriptor(keyPath: \DocumentEntity.createdAt, ascending: false)])
+    private var documents: FetchedResults<DocumentEntity>
     @State private var fmToggle = false
     @State private var permissionStatuses = PermissionStatuses()
 
     var body: some View {
         NavigationStack {
             Form {
+                Section("Your cabinet") {
+                    LabeledContent("Documents", value: "\(documents.count)")
+                    LabeledContent("With due dates", value: "\(documents.filter { $0.dueDate != nil }.count)")
+                    LabeledContent("Reminders", value: reminderService.isAuthorized ? "On" : "Off")
+                }
+
+                Section("Privacy") {
+                    Text("CabinetIQ is a vault, not a cloud product. OCR, classification, search, and answers all run on this iPhone. There is no account and no analytics.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+
                 Section("On-Device Foundation Models") {
                     Toggle("Private Cloud Compute (coming soon)", isOn: $fmToggle)
                         .disabled(true)
@@ -23,14 +38,15 @@ struct SettingsView: View {
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
+
                 Section("Permissions") {
                     PermissionRow(icon: "camera.viewfinder", title: "Camera", status: permissionStatuses.camera)
                     PermissionRow(icon: "photo.on.rectangle", title: "Photos", status: permissionStatuses.photos)
                     PermissionRow(icon: "bell", title: "Notifications", status: permissionStatuses.notifications)
                     PermissionRow(icon: "folder", title: "Files", status: permissionStatuses.files)
-                    Text("CabinetIQ stays private by default. Grant only the permissions you’re comfortable with.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                    Button("Enable reminders") {
+                        reminderService.requestAuthorization()
+                    }
                     Button("Manage in Settings") {
                         if let url = URL(string: UIApplication.openSettingsURLString) {
                             openURL(url)
@@ -38,9 +54,12 @@ struct SettingsView: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Theme.background)
             .navigationTitle("Settings")
             .task {
                 permissionStatuses = await PermissionStatuses.fetch()
+                reminderService.refreshStatus()
             }
         }
     }
@@ -148,11 +167,11 @@ private enum PermissionState {
     var color: Color {
         switch self {
         case .granted:
-            return .green
+            return Theme.ok
         case .denied:
-            return .red
+            return Theme.overdue
         case .limited:
-            return .orange
+            return Theme.soon
         case .notDetermined, .notRequired:
             return .secondary
         }

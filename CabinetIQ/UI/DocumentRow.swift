@@ -4,36 +4,48 @@ struct DocumentRow: View {
     let document: DocumentEntity
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(document.issuer ?? "Untitled")
-                    .font(.headline)
-                Spacer()
-                Text(document.docType ?? DocType.other.rawValue)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            HStack(spacing: 8) {
-                if let due = document.dueDate {
-                    Label("Due", systemImage: "bell")
-                        .labelStyle(.iconOnly)
-                    Text(due, style: .date)
-                        .font(.caption)
-                        .padding(6)
-                        .background(Color.cyan.opacity(0.2), in: RoundedRectangle(cornerRadius: 6))
+        HStack(alignment: .center, spacing: 14) {
+            thumbnail
+            VStack(alignment: .leading, spacing: 5) {
+                HStack {
+                    Text(document.displayTitle)
+                        .font(.headline)
+                        .lineLimit(1)
+                    Spacer()
+                    if document.dueDate != nil {
+                        StatusChip(text: document.dueStatus.shortLabel, color: Theme.color(for: document.dueStatus))
+                    }
                 }
-                if let amount = document.amount {
-                    Text(amount, formatter: currencyFormatter)
-                        .font(.caption)
+                Text(document.docTypeValue.displayName)
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.secondaryInk)
+                HStack(spacing: 8) {
+                    DomainChip(domain: document.domainValue, selected: true)
+                    if let amount = document.amount, let money = FieldCatalog.money(amount.decimalValue) {
+                        Text(money)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Theme.secondaryInk)
+                    }
                 }
             }
         }
+        .cabinetCard()
     }
 
-    private var currencyFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.locale = Locale(identifier: "en_GB")
-        return formatter
+    @ViewBuilder
+    private var thumbnail: some View {
+        if let image = document.thumbnailImage {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 54, height: 68)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        } else {
+            Image(systemName: document.docTypeValue.icon)
+                .font(.title3)
+                .foregroundStyle(Theme.color(for: document.domainValue))
+                .frame(width: 54, height: 68)
+                .background(Theme.color(for: document.domainValue).opacity(0.16), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
     }
 }

@@ -13,14 +13,16 @@ final class IngestPipeline: ObservableObject {
     private let classifier = DocumentClassifier()
     private let extractor = FieldExtractor.shared
 
-    func ingest(images: [CGImage], source: DocumentSource, context: NSManagedObjectContext) async throws {
+    @discardableResult
+    func ingest(images: [CGImage], source: DocumentSource, context: NSManagedObjectContext) async throws -> DocumentEntity {
         let (text, lines) = try await performOCR(on: images)
         let data = images.first.flatMap { UIImage(cgImage: $0).jpegData(compressionQuality: 0.9) }
         let url = try data.flatMap { try persist(data: $0, suggestedExtension: "jpg") }
-        try await persistDocument(text: text, lines: lines, fileURL: url, source: source, context: context)
+        return try await persistDocument(text: text, lines: lines, fileURL: url, source: source, context: context)
     }
 
-    func ingest(fileURL: URL, source: DocumentSource, context: NSManagedObjectContext) async throws {
+    @discardableResult
+    func ingest(fileURL: URL, source: DocumentSource, context: NSManagedObjectContext) async throws -> DocumentEntity {
         let cgImage: CGImage
         if fileURL.pathExtension.lowercased() == "pdf", let pdf = PDFDocument(url: fileURL), let page = pdf.page(at: 0) {
             cgImage = page.thumbnail(of: CGSize(width: 1200, height: 1200), for: .mediaBox).cgImage!
@@ -31,7 +33,12 @@ final class IngestPipeline: ObservableObject {
         }
         let (text, lines) = try await performOCR(on: [cgImage])
         let stored = try persistExisting(fileURL: fileURL)
-        try await persistDocument(text: text, lines: lines, fileURL: stored, source: source, context: context)
+        return try await persistDocument(text: text, lines: lines, fileURL: stored, source: source, context: context)
+    }
+
+    @discardableResult
+    func ingest(text: String, source: DocumentSource, context: NSManagedObjectContext) async throws -> DocumentEntity {
+        try await persistDocument(text: text, lines: [], fileURL: nil, source: source, context: context)
     }
 
     private func performOCR(on images: [CGImage]) async throws -> (String, [LineGeometry]) {
@@ -53,7 +60,8 @@ final class IngestPipeline: ObservableObject {
         return (aggregated.trimmingCharacters(in: .whitespacesAndNewlines), lines)
     }
 
-    private func persistDocument(text: String, lines: [LineGeometry], fileURL: URL?, source: DocumentSource, context: NSManagedObjectContext) async throws {
+    @discardableResult
+    private func persistDocument(text: String, lines: [LineGeometry], fileURL: URL?, source: DocumentSource, context: NSManagedObjectContext) async throws -> DocumentEntity {
         let (domain, docType, issuer) = classifier.classify(text: text)
         let document = DocumentEntity(context: context)
         document.id = UUID()
@@ -68,8 +76,11 @@ final class IngestPipeline: ObservableObject {
         let fields = await extractor.extract(for: docType, text: text)
         document.apply(fields: fields, lines: lines)
         try context.save()
-        ReminderService.shared.scheduleReminders(for: document)
+        if document.dueDate != nil {
+            ReminderService.shared.scheduleReminders(for: document)
+        }
         SearchIndex.shared.index(document: document)
+        return document
     }
 
     private func persist(data: Data, suggestedExtension: String) throws -> URL {
