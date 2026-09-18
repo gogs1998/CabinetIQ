@@ -6,6 +6,7 @@ struct DocumentDetailView: View {
     @Environment(\.managedObjectContext) private var context
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var reminderService: ReminderService
+    @EnvironmentObject private var navigation: AppNavigation
 
     @State private var exportURL: URL?
     @State private var showShareSheet = false
@@ -22,6 +23,7 @@ struct DocumentDetailView: View {
                     StatusChip(text: document.dueStatus.label, color: Theme.color(for: document.dueStatus))
                 }
                 preview
+                askButton
                 fieldSection
                 reminderSection
                 ocrSection
@@ -165,15 +167,41 @@ struct DocumentDetailView: View {
         .cabinetCard()
     }
 
+    private var askButton: some View {
+        Button(action: askAboutDocument) {
+            Label("Ask about this document", systemImage: "text.magnifyingglass")
+                .font(.headline)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(Theme.accent)
+        .foregroundStyle(Color.black)
+    }
+
     private var ocrSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            DisclosureGroup("What we read") {
-                Text(document.ocrText?.isEmpty == false ? document.ocrText! : "No text was captured.")
+            Text("What we read")
+                .font(.headline)
+            Text(document.ocrLineCount == 0
+                 ? "No text was captured."
+                 : "\(document.ocrLineCount) lines stayed on this iPhone. Ask can search every one.")
+                .font(.subheadline)
+                .foregroundStyle(Theme.secondaryInk)
+            if !document.ocrPreview.isEmpty {
+                Text(document.ocrPreview)
                     .font(.footnote)
                     .foregroundStyle(Theme.secondaryInk)
-                    .padding(.top, 8)
             }
-            .tint(Theme.accent)
+            if let text = document.ocrText, !text.isEmpty {
+                DisclosureGroup("Full text") {
+                    Text(text)
+                        .font(.footnote)
+                        .foregroundStyle(Theme.secondaryInk)
+                        .padding(.top, 8)
+                }
+                .tint(Theme.accent)
+            }
             if document.fileURL != nil {
                 Button("Open original", action: openOriginal)
                     .buttonStyle(.bordered)
@@ -181,6 +209,13 @@ struct DocumentDetailView: View {
             }
         }
         .cabinetCard()
+    }
+
+    private func askAboutDocument() {
+        guard let id = document.id else { return }
+        let question = VaultInsights.suggestedQuestions(for: [document]).first
+            ?? "What did we read on this \(document.docTypeValue.displayName)?"
+        navigation.openAsk(question: question, scope: .document(id))
     }
 
     private func export() {

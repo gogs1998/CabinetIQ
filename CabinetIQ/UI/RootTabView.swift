@@ -4,10 +4,18 @@ import SwiftUI
 final class AppNavigation: ObservableObject {
     @Published var selectedTab = 0
     @Published var vaultDomain: Domain?
+    @Published var pendingQuestion: String?
+    @Published var pendingScope: AskScope = .all
 
     func openVault(domain: Domain?) {
         vaultDomain = domain
         selectedTab = 1
+    }
+
+    func openAsk(question: String? = nil, scope: AskScope = .all) {
+        pendingScope = scope
+        pendingQuestion = question
+        selectedTab = 2
     }
 }
 

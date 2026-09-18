@@ -13,6 +13,7 @@ struct HomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 28) {
                     header
+                    askLaunch
                     if documents.isEmpty {
                         emptyState
                     } else {
@@ -53,7 +54,7 @@ struct HomeView: View {
             Text("Cabinet")
                 .font(.system(size: 36, weight: .semibold, design: .serif))
             Text(documents.isEmpty
-                 ? "Your life admin, filed and remembered."
+                 ? "Scan it. We read every line. Then you can ask."
                  : attentionLine)
                 .font(.body)
                 .foregroundStyle(Theme.secondaryInk)
@@ -66,18 +67,59 @@ struct HomeView: View {
         if let first = items.first {
             return "\(first.displayTitle) · \(first.dueStatus.label.lowercased())."
         }
-        return "Everything in date. File the next thing when it arrives."
+        return "Ask a plate, a policy number, or what is due next."
+    }
+
+    private var askLaunch: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Button {
+                navigation.openAsk()
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "text.magnifyingglass")
+                        .foregroundStyle(Theme.accent)
+                    Text("Ask anything you scanned")
+                        .foregroundStyle(Theme.secondaryInk)
+                    Spacer()
+                    Image(systemName: "arrow.up.right")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(Theme.accent)
+                }
+                .padding(16)
+                .background(Theme.panel, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(Theme.stroke, lineWidth: 1)
+                )
+            }
+            .buttonStyle(.plain)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(Array(VaultInsights.suggestedQuestions(for: Array(documents)).prefix(4)), id: \.self) { question in
+                        Button(question) {
+                            navigation.openAsk(question: question)
+                        }
+                        .font(.caption.weight(.semibold))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Theme.panelElevated, in: Capsule())
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
     }
 
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: 18) {
             VStack(alignment: .leading, spacing: 10) {
-                Image(systemName: "cabinet.fill")
+                Image(systemName: "text.viewfinder")
                     .font(.system(size: 36))
                     .foregroundStyle(Theme.accent)
-                Text("Scan an MOT, policy, or bill.")
+                Text("Your documents become answers.")
                     .font(.title3.weight(.semibold))
-                Text("CabinetIQ reads it on this iPhone, pulls out the dates, and reminds you before they lapse. Nothing leaves the device.")
+                Text("CabinetIQ reads every line on this iPhone. Then ask: what’s the plate, the policy number, the rate. Dates we find also get reminders. Nothing leaves the device.")
                     .foregroundStyle(Theme.secondaryInk)
             }
             .cabinetCard()

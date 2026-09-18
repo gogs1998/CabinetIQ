@@ -51,6 +51,22 @@ extension DocumentEntity: Identifiable {
         return FieldCatalog.rows(from: extractedFields)
     }
 
+    var ocrLineCount: Int {
+        (ocrText ?? "")
+            .split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+            .count
+    }
+
+    var ocrPreview: String {
+        let lines = (ocrText ?? "")
+            .split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+        return lines.prefix(3).joined(separator: "\n")
+    }
+
     var thumbnailImage: UIImage? {
         guard let path = fileURL, FileManager.default.fileExists(atPath: path) else { return nil }
         if path.lowercased().hasSuffix("pdf"),

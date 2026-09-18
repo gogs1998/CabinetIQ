@@ -4,6 +4,7 @@ import CoreData
 struct AskView: View {
     @Environment(\.managedObjectContext) private var context
     @EnvironmentObject private var rag: RAGEngine
+    @EnvironmentObject private var navigation: AppNavigation
     @FetchRequest(sortDescriptors: [NSSortDescriptor(keyPath: \DocumentEntity.createdAt, ascending: false)])
     private var documents: FetchedResults<DocumentEntity>
 
@@ -44,6 +45,10 @@ struct AskView: View {
             }
             .cabinetScreen()
             .navigationTitle("Ask")
+            .onAppear(perform: consumePendingQuestion)
+            .onChange(of: navigation.pendingQuestion) { _, _ in
+                consumePendingQuestion()
+            }
             .sheet(item: $selectedDocumentID) { id in
                 if let document = fetchDocument(id: id) {
                     NavigationStack {
@@ -84,9 +89,9 @@ struct AskView: View {
 
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Ask your cabinet")
+            Text("Ask the text we read")
                 .font(.system(size: 28, weight: .semibold, design: .serif))
-            Text("Answers stay on this iPhone. Start with a question we can already answer from what you’ve filed.")
+            Text("Every scan is OCR’d on this iPhone. Ask for a plate, policy number, amount, or date — answers cite the original document.")
                 .foregroundStyle(Theme.secondaryInk)
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(VaultInsights.suggestedQuestions(for: Array(documents)), id: \.self) { question in
@@ -109,7 +114,7 @@ struct AskView: View {
 
     private var askBar: some View {
         HStack(spacing: 10) {
-            TextField("Ask about MOT, bills, tax…", text: $input, axis: .vertical)
+            TextField("What’s my registration, policy, rate…", text: $input, axis: .vertical)
                 .textFieldStyle(.plain)
                 .padding(12)
                 .background(Theme.panel, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -135,7 +140,7 @@ struct AskView: View {
                 .background(Theme.panelElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .frame(maxWidth: .infinity, alignment: .trailing)
             VStack(alignment: .leading, spacing: 8) {
-                Text(turn.answer.source == .rag ? "From your documents" : "From a known fact")
+                Text(turn.answer.source == .rag ? "From the text we read" : "From extracted facts")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Theme.secondaryInk)
                 Text(turn.answer.text)
@@ -163,6 +168,15 @@ struct AskView: View {
             .padding(14)
             .background(Theme.accent.opacity(0.14), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
+    }
+
+    private func consumePendingQuestion() {
+        scope = navigation.pendingScope
+        guard let pending = navigation.pendingQuestion, !pending.isEmpty else { return }
+        selectedDocumentID = nil
+        navigation.pendingQuestion = nil
+        input = pending
+        send()
     }
 
     private func send() {

@@ -50,6 +50,14 @@ final class PresentationTests: XCTestCase {
         XCTAssertTrue(filled.contains("When is my tax deadline?"))
         XCTAssertTrue(filled.contains("What needs my attention?"))
         XCTAssertFalse(filled.contains("When does my MOT expire?"))
+
+        let fromFacts = VaultInsights.suggestedQuestions(
+            types: [.mot],
+            facts: [.registration, .policyNumber],
+            isEmpty: false
+        )
+        XCTAssertTrue(fromFacts.contains("What’s the registration on my MOT?"))
+        XCTAssertTrue(fromFacts.contains("What’s my policy number?"))
     }
 
     @MainActor

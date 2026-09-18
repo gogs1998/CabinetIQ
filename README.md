@@ -1,24 +1,26 @@
 # CabinetIQ
 
-CabinetIQ is a private life-admin vault for iPhone. Scan an MOT, insurance policy, mortgage letter, or bill. It stays on the device, gets classified into Car / Home / Life, and CabinetIQ reminds you before it lapses. Then you can ask the cabinet questions in plain English.
+CabinetIQ is a private life-admin vault for iPhone. Scan an MOT, insurance policy, mortgage letter, or bill. Vision OCR reads every line on this device. Then you can ask the cabinet questions in plain English — plate, policy number, rate, amount — and get an answer with a citation back to the original.
 
-That is the product. Not “another scanner.” Not a cloud drive. A cabinet that remembers the dates that actually matter.
+Reminders are what fall out of that: if the text contains a due date, we nudge you before it lapses.
+
+That is the product. Not “another scanner.” A cabinet you can query.
 
 ## Why this can win
 
-Generic scan apps (Adobe Scan, Genius Scan, the Files app) are a commodity. They produce PDFs. They do not tell you the MOT is due in 12 days.
+Generic scan apps (Adobe Scan, Genius Scan, the Files app) are a commodity. They produce PDFs. They do not answer “what’s my registration?”
 
 Single-purpose MOT or insurance reminder apps are useful and forgettable. They do not hold the rest of someone’s life admin.
 
-CabinetIQ’s wedge is **UK life admin intelligence, on-device**:
+CabinetIQ’s wedge is **on-device OCR you can query**:
 
-- One capture → structured facts (dates, plates, policy numbers, amounts)
-- A home screen that is a command centre, not a file dump
-- Reminders before things lapse
-- Ask, with citations back to the original document
+- One capture → full text + structured facts (dates, plates, policy numbers, amounts)
+- Ask in English, with citations back to the original page
+- A home screen that starts with “Ask anything you scanned”
+- Reminders before dates in that text lapse
 - Privacy as the brand, not a footnote
 
-Bestsellers in utility are not the ones with the most features. They are the ones that do one expensive job perfectly: *don’t let my life expire.*
+Scanners produce PDFs. Search boxes filter filenames. CabinetIQ answers “what’s my registration?” from the words it read.
 
 ## What changed in this pass
 
@@ -26,9 +28,9 @@ The early build had a real engine (Vision OCR, extractors, BM25/RAG, local remin
 
 This revision turns that engine into a product:
 
-- **Home** — greeting, what needs you, Car/Home/Life coverage, recent, one-tap capture
+- **Home** — “Ask anything you scanned” is the hero, plus coverage and renewals
 - **Vault** — searchable library with domain and type filters, document cards, swipe/context delete
-- **Ask** — suggested questions from what you have actually filed, chat turns, citations
+- **Ask** — questions from OCR facts (plate, policy, amount), citations from the text we read
 - Human **key facts** instead of dumped JSON, plus edit / delete / export
 - First-run onboarding and a **sample MOT** so the loop is visible in 10 seconds
 - Brass-on-ink visual system, not generic developer dark mode
@@ -57,7 +59,7 @@ Shipping this UI is the first mile, not the last. The remaining work that actual
 3. **Proactive, not archival.** Home should feel like Apple Health for life admin: coverage gaps (“no car insurance filed”), widgets, lock-screen next due date.
 4. **UK-specific depth.** MOT, VED, insurance, mortgage fix end, HMRC, council tax. Own this vocabulary. Then expand.
 5. **Share Sheet + Shortcuts** as acquisition. “Save to CabinetIQ” from Mail and Photos is how the vault fills.
-6. **App Store narrative.** Screenshots of Home (attention + coverage), a scanned MOT with extracted facts, and Ask answering “when does my MOT expire?” Privacy badge. No cloud account.
+6. **App Store narrative.** Screenshots of a scan being read, Home’s “Ask anything you scanned” bar, and Ask answering “what’s my registration?” from the MOT text. Privacy badge. No cloud account.
 7. **Widget + notification copy** that people screenshot. That is marketing.
 8. **Do not add accounts, sync, or social** until the on-device loop is beloved. Privacy is the moat.
 

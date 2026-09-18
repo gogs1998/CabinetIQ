@@ -250,27 +250,39 @@ enum VaultInsights {
     }
 
     static func suggestedQuestions(types: Set<DocType>, isEmpty: Bool) -> [String] {
+        suggestedQuestions(types: types, facts: [], isEmpty: isEmpty)
+    }
+
+    static func suggestedQuestions(types: Set<DocType>, facts: Set<QueryableFact>, isEmpty: Bool) -> [String] {
         if isEmpty {
             return [
                 "When does my MOT expire?",
-                "What bills are due this month?",
-                "What is my mortgage rate?"
+                "What’s my policy number?",
+                "How much was the last bill?"
             ]
         }
 
         var questions: [String] = []
+        if facts.contains(.registration) { questions.append("What’s the registration on my MOT?") }
+        if facts.contains(.policyNumber) { questions.append("What’s my policy number?") }
         if types.contains(.mot) { questions.append("When does my MOT expire?") }
         if types.contains(.insurance) { questions.append("When is insurance due?") }
-        if types.contains(.mortgage) { questions.append("What is my mortgage rate?") }
+        if types.contains(.mortgage) || facts.contains(.mortgageRate) { questions.append("What is my mortgage rate?") }
+        if facts.contains(.amount) { questions.append("How much do I owe?") }
         if types.contains(.taxHMRC) { questions.append("When is my tax deadline?") }
         if types.contains(.utility) { questions.append("What bills do I have?") }
         if types.contains(.warranty) { questions.append("Which warranties are still active?") }
         questions.append("What needs my attention?")
-        return questions
+        var seen = Set<String>()
+        return questions.filter { seen.insert($0).inserted }
     }
 
     static func suggestedQuestions(for documents: [DocumentEntity]) -> [String] {
-        suggestedQuestions(types: Set(documents.map(\.docTypeValue)), isEmpty: documents.isEmpty)
+        suggestedQuestions(
+            types: Set(documents.map(\.docTypeValue)),
+            facts: QueryableFact.present(in: documents),
+            isEmpty: documents.isEmpty
+        )
     }
 
     static func greeting(at date: Date = Date(), calendar: Calendar = .current) -> String {
@@ -283,10 +295,36 @@ enum VaultInsights {
 
     static func ingestSummary(for document: DocumentEntity) -> String {
         let title = document.displayTitle
+        let read = document.ocrLineCount > 0 ? "Read \(document.ocrLineCount) lines. " : ""
         if let due = FieldCatalog.date(document.dueDate) {
-            return "\(title) filed. Due \(due) — we'll remind you."
+            return "\(read)\(title) is searchable. Due \(due)."
         }
-        return "\(title) is in your cabinet."
+        return "\(read)\(title) is searchable in Ask."
+    }
+}
+
+enum QueryableFact: Hashable {
+    case registration
+    case policyNumber
+    case amount
+    case mortgageRate
+    case account
+    case address
+
+    static func present(in documents: [DocumentEntity]) -> Set<QueryableFact> {
+        var facts = Set<QueryableFact>()
+        for document in documents {
+            let fields = document.extractedFields
+            if fields?.mot?.vrm != nil || fields?.service?.vehicleVRM != nil { facts.insert(.registration) }
+            if fields?.policyNumber != nil || fields?.insurance?.policyNumber != nil { facts.insert(.policyNumber) }
+            if document.amount != nil || fields?.amountGBP != nil { facts.insert(.amount) }
+            if fields?.mortgage?.rate != nil { facts.insert(.mortgageRate) }
+            if fields?.accountNumber != nil || fields?.bank?.accountNumber != nil || fields?.utility?.accountNo != nil {
+                facts.insert(.account)
+            }
+            if fields?.address != nil { facts.insert(.address) }
+        }
+        return facts
     }
 }
 

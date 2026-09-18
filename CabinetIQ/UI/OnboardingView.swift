@@ -8,19 +8,19 @@ struct OnboardingView: View {
         VStack(spacing: 0) {
             TabView {
                 OnboardingPage(
-                    icon: "cabinet.fill",
-                    title: "A cabinet for real life",
-                    bodyText: "MOT certificates, insurance, mortgages, bills, and tax letters — filed into Car, Home, and Life."
+                    icon: "viewfinder",
+                    title: "Scan it. We read every line.",
+                    bodyText: "Vision OCR stays on this iPhone. MOT certificates, policies, bills, and tax letters become searchable text — not a dead PDF."
                 )
                 OnboardingPage(
-                    icon: "viewfinder",
-                    title: "Scan once. We read it.",
-                    bodyText: "Vision OCR stays on this iPhone. We pull out dates, amounts, plates, and policy numbers so you don’t have to retype them."
+                    icon: "text.magnifyingglass",
+                    title: "Then ask your documents.",
+                    bodyText: "What’s the plate? The policy number? The mortgage rate? CabinetIQ answers from the text it read, and cites the original."
                 )
                 OnboardingPage(
                     icon: "bell.badge.fill",
-                    title: "Never miss a renewal",
-                    bodyText: "When a due date is found, CabinetIQ reminds you 30 days and 7 days before. Ask the cabinet in plain English anytime."
+                    title: "Dates become reminders.",
+                    bodyText: "When a due date is in that text, we nudge you 30 days and 7 days before. Query is the product. Reminders are what fall out of it."
                 )
             }
             .tabViewStyle(.page(indexDisplayMode: .always))
