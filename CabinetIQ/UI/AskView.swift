@@ -75,7 +75,7 @@ struct AskView: View {
 
     private func messageBubble(for message: AskAnswer) -> some View {
         let questionTokens = tokens(from: message.question)
-        VStack(alignment: .leading, spacing: 6) {
+        return VStack(alignment: .leading, spacing: 6) {
             Text(message.source == .rag ? "RAG" : "Intent")
                 .font(.caption)
                 .foregroundStyle(.secondary)

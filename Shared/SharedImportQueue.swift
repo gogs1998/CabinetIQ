@@ -7,7 +7,7 @@ struct SharedImportBatch: Codable, Identifiable {
 }
 
 enum SharedImportQueue {
-    private static let appGroupID = "group.com.example.CabinetIQ"
+    private static let appGroupID = "group.com.examples.CabinetIQ"
     private static let queueKey = "pendingShareBatches"
     private static let importsDirectoryName = "SharedImports"
 
